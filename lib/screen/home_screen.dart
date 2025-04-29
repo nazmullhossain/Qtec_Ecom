@@ -51,11 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
           .toList();
     }
 
-    if (sortType == 'price') {
+    if (sortType == 'price_asc') {
       result.sort((a, b) => a.price.compareTo(b.price));
+    } else if (sortType == 'price_desc') {
+      result.sort((a, b) => b.price.compareTo(a.price));
     } else if (sortType == 'rating') {
       result.sort((a, b) => b.rate.compareTo(a.rate));
     }
+
 
     return result;
   }
@@ -66,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Container(
           height: 48,
-          width: 250.w,
+          width: 275.w,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.r),
             border: Border.all(color: const Color(0xffD1D5DB)),
@@ -94,19 +97,97 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        PopupMenuButton<String>(
+        IconButton(
           icon: SvgPicture.asset("assets/svg/sort.svg"),
-          onSelected: (value) {
-            setState(() {
-              _selectedSort = value;
-            });
+          onPressed: () {
+
+
+            showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Sort By",
+                            style: GlobalVarriable.customTextStyle(
+                              color: Color(0xff1F2937),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          IconButton(onPressed: (){
+                            Navigator.pop(context);
+                          }, icon:  Icon(Icons.close, size: 24, color: Color(0xff1F2937)),)
+
+                        ],
+                      ),
+                    ),
+                    ListTile(
+
+                      title: Text(
+                        'Price - High to Low',
+                        style: GlobalVarriable.customTextStyle(
+                          color: Color(0xff1F2937),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedSort = 'price_desc';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+
+                      title: Text(
+                        'Price - Low to High',
+                        style: GlobalVarriable.customTextStyle(
+                          color: Color(0xff1F2937),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedSort = 'price_asc';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+
+                      title: Text(
+                        'Rating',
+                        style: GlobalVarriable.customTextStyle(
+                          color: Color(0xff1F2937),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedSort = 'rating';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+
+
           },
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: 'none', child: Text('No Sort')),
-            PopupMenuItem(value: 'price', child: Text('Price: Low to High')),
-            PopupMenuItem(value: 'rating', child: Text('Rating')),
-          ],
         ),
+
       ],
     );
   }
@@ -136,30 +217,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  product.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: const Color(0xff1F2937),
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w400,
-                  ),
+              Text(
+                product.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xff1F2937),
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  '\$${product.price}',
-                  style: TextStyle(
-                    color: const Color(0xff1F2937),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
+              SizedBox(height: 8.sp,),
+              Text(
+                '\$${product.price}',
+                style: TextStyle(
+                  color: const Color(0xff1F2937),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+              SizedBox(height: 8.sp,),
               
               Row(
                 children: [
@@ -184,8 +261,9 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 5,
             right: 18,
             child: Container(
-              height: 16.h,
-              width: 16.w,
+              padding: EdgeInsets.all(2),
+              height: 24.h,
+              width: 24.w,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: Color(0xffFFFFFF),
@@ -218,7 +296,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
+
                   children: [
+                    SizedBox(height: 10),
                     _buildSearchBar(),
                     const SizedBox(height: 10),
                     Expanded(

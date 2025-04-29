@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -10,6 +11,11 @@ import 'bloc/product/product_bloc.dart';
 import 'bloc/product/product_event.dart';
 
 void main() {
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.white,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.light,
+  ));
   final productRepository = ProductRepository();
   runApp(MyApp(productRepository: productRepository));
 }
