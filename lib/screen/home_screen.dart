@@ -256,6 +256,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.pop(context);
                       },
                     ),
+                    ListTile(
+                      title: Text(
+                        'Rating',
+                        style: GlobalVarriable.customTextStyle(
+                          color: Color(0xff1F2937),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedSort = 'rating';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
                   ],
                 );
               },
