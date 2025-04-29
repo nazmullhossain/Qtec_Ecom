@@ -1,19 +1,12 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qtec_ecom/utils/global_varriable.dart';
-
+import '../../models/product_models.dart';
 import '../bloc/product/product_bloc.dart';
 import '../bloc/product/product_event.dart';
 import '../bloc/product/product_state.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,91 +16,69 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  TextEditingController searchController = TextEditingController();
-  late ScrollController _scrollController;
+  final TextEditingController searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  List<Product> _allProducts = [];
+  String _selectedSort = 'none';
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController()..addListener(_onScroll);
+    _scrollController.addListener(_scrollListener);
     context.read<ProductBloc>().add(FetchProducts());
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100) {
+  void _scrollListener() {
+    final state = context.read<ProductBloc>().state;
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent &&
+        state is ProductLoaded &&
+        !state.hasReachedMax) {
       context.read<ProductBloc>().add(FetchProducts());
     }
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  List<Product> _applySearchAndSort({
+    required List<Product> products,
+    required String query,
+    required String sortType,
+  }) {
+    List<Product> result = products;
+
+    if (query.isNotEmpty) {
+      result = result
+          .where((p) => p.title.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+
+    if (sortType == 'price') {
+      result.sort((a, b) => a.price.compareTo(b.price));
+    } else if (sortType == 'rating') {
+      result.sort((a, b) => b.rate.compareTo(a.rate));
+    }
+
+    return result;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Products')),
-      body: BlocBuilder<ProductBloc, ProductState>(
-        builder: (context, state) {
-          if (state is ProductLoading && (state is! ProductLoaded)) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ProductLoaded) {
-            return Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                children: [
-                  _buildSearchAndSortBar(),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: GridView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(8),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: state.products.length,
-                      itemBuilder: (context, index) {
-                        final product = state.products[index];
-                        return _buildProductCard(product);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (state is ProductError) {
-            return Center(child: Text(state.message));
-          } else {
-            return const SizedBox();
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildSearchAndSortBar() {
+  Widget _buildSearchBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
           height: 48,
-          width: 269,
+          width: 250.w,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.sp),
+            borderRadius: BorderRadius.circular(8.r),
             border: Border.all(color: const Color(0xffD1D5DB)),
           ),
           child: TextField(
             controller: searchController,
+            onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               hintText: "Search Anything...",
-              hintStyle: GlobalVarriable.customTextStyle(
+              hintStyle: TextStyle(
                 color: const Color(0xff9CA3AF),
-                fontSize: 16,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.w400,
               ),
               border: InputBorder.none,
@@ -122,18 +93,32 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 11),
-        SvgPicture.asset("assets/svg/sort.svg"),
+        const SizedBox(width: 8),
+        PopupMenuButton<String>(
+          icon: SvgPicture.asset("assets/svg/sort.svg"),
+          onSelected: (value) {
+            setState(() {
+              _selectedSort = value;
+            });
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 'none', child: Text('No Sort')),
+            PopupMenuItem(value: 'price', child: Text('Price: Low to High')),
+            PopupMenuItem(value: 'rating', child: Text('Rating')),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildProductCard(product) {
+  Widget _buildProductCard(Product product) {
     return Container(
       width: 156.w,
       height: 263.h,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
+        // color: Colors.red
+          
       ),
       child: Stack(
         children: [
@@ -141,11 +126,14 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Image.network(
-                  product.image,
-                  fit: BoxFit.fill,
-                  width: 156.w,
-                  height: 164.h,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.network(
+                    product.image,
+                    fit: BoxFit.fill,
+                    width: 156.w,
+                    height: 164.h,
+                  ),
                 ),
               ),
               Padding(
@@ -154,9 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   product.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: GlobalVarriable.customTextStyle(
+                  style: TextStyle(
                     color: const Color(0xff1F2937),
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -165,13 +153,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
                   '\$${product.price}',
-                  style: GlobalVarriable.customTextStyle(
+                  style: TextStyle(
                     color: const Color(0xff1F2937),
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+              
+              Row(
+                children: [
+                  SvgPicture.asset("assets/svg/Rating Icon.svg"),
+                  SizedBox(width: 4.sp,),
+                  Text("${product.rate}",style: GlobalVarriable.customTextStyle(
+                      color: Color(0xff1F2937),
+                      fontSize: 12, fontWeight: FontWeight.w500),),
+                  SizedBox(width: 4.sp,),
+                  Text("(${product.count})",
+                  style: GlobalVarriable.customTextStyle(
+                      color: Color(0xff6B7280),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400),),
+
+                ],
+              )
+              
             ],
           ),
           Positioned(
@@ -191,9 +197,60 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      body: BlocBuilder<ProductBloc, ProductState>(
+        builder: (context, state) {
+          if (state is ProductLoading && _allProducts.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ProductLoaded) {
+            _allProducts = state.products;
+            final filteredProducts = _applySearchAndSort(
+              products: _allProducts,
+              query: searchController.text,
+              sortType: _selectedSort,
+            );
+
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  children: [
+                    _buildSearchBar(),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: GridView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: filteredProducts.length + (state.hasReachedMax ? 0 : 1),
+                        itemBuilder: (context, index) {
+                          if (index >= filteredProducts.length) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          return _buildProductCard(filteredProducts[index]);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else if (state is ProductError) {
+            return Center(child: Text(state.message));
+          } else {
+            return const SizedBox();
+          }
+        },
+      ),
+    );
+  }
 }
-
-
-
-
-

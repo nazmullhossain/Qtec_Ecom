@@ -1,50 +1,58 @@
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:qtec_ecom/repository/product_repository.dart';
 import '../../models/product_models.dart';
-import '../../utils/db_helper.dart';
 import 'product_event.dart';
 import 'product_state.dart';
 
-// product_bloc.dart
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
-  final _dbHelper = DatabaseHelper();
   int _page = 1;
-  final int _pageSize = 10;
-  List<Product> _allProducts = [];
+  final int _limit = 10;
+  bool _isFetching = false;
 
-  ProductBloc() : super(ProductInitial()) {
+  ProductBloc({required ProductRepository productRepository}) : super(ProductInitial()) {
     on<FetchProducts>(_onFetchProducts);
   }
 
   Future<void> _onFetchProducts(FetchProducts event, Emitter<ProductState> emit) async {
-    if (state is ProductLoading) return;
-
-    emit(ProductLoading());
+    if (_isFetching) return;
+    _isFetching = true;
 
     try {
-      final response = await http.get(Uri.parse('https://fakestoreapi.com/products'));
-      if (response.statusCode == 200) {
-        List jsonData = jsonDecode(response.body);
-        _allProducts = jsonData.map((e) => Product.fromJson(e)).toList();
+      final currentState = state;
+      List<Product> oldProducts = [];
 
-        // Paginate manually
-        int start = (_page - 1) * _pageSize;
-        int end = start + _pageSize;
-        List<Product> paginated = _allProducts.sublist(start, end > _allProducts.length ? _allProducts.length : end);
-
-        await _dbHelper.insertProducts(paginated);
-        List<Product> dbProducts = await _dbHelper.getAllProducts();
-
-        emit(ProductLoaded(dbProducts));
-        _page++;
+      if (currentState is ProductLoaded) {
+        oldProducts = currentState.products;
       } else {
-        emit(ProductError('Failed to load'));
+        emit(ProductLoading());
+      }
+
+      final response = await http.get(
+        Uri.parse('https://fakestoreapi.com/products?limit=$_limit'),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body) as List;
+        final products = jsonData.map((e) => Product.fromJson(e)).toList();
+
+        if (products.isEmpty) {
+          emit(ProductLoaded(products: oldProducts, hasReachedMax: true));
+        } else {
+          _page++;
+          emit(ProductLoaded(
+            products: [...oldProducts, ...products],
+            hasReachedMax: products.length < _limit,
+          ));
+        }
+      } else {
+        emit(ProductError('Failed to load products'));
       }
     } catch (e) {
       emit(ProductError(e.toString()));
+    } finally {
+      _isFetching = false;
     }
   }
 }
-
