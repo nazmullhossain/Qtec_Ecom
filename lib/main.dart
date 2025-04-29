@@ -13,7 +13,7 @@ import 'bloc/product/product_event.dart';
 void main() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.white,
-    statusBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
     statusBarBrightness: Brightness.light,
   ));
   final productRepository = ProductRepository();

@@ -103,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
             showModalBottomSheet(
+              isScrollControlled: true,
               context: context,
+              backgroundColor: Colors.white,
               builder: (context) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
@@ -121,15 +123,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          IconButton(onPressed: (){
-                            Navigator.pop(context);
-                          }, icon:  Icon(Icons.close, size: 24, color: Color(0xff1F2937)),)
-
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(Icons.close, size: 24, color: Color(0xff1F2937)),
+                          ),
                         ],
                       ),
                     ),
                     ListTile(
-
                       title: Text(
                         'Price - High to Low',
                         style: GlobalVarriable.customTextStyle(
@@ -146,7 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     ListTile(
-
                       title: Text(
                         'Price - Low to High',
                         style: GlobalVarriable.customTextStyle(
@@ -163,7 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     ListTile(
-
                       title: Text(
                         'Rating',
                         style: GlobalVarriable.customTextStyle(
@@ -183,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             );
+
 
 
           },
@@ -217,6 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              SizedBox(height: 8.sp,),
               Text(
                 product.title,
                 maxLines: 2,

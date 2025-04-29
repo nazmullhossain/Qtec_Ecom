@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class GlobalVarriable{
 
 
-  static String  productApi="https://fakestoreapi.com/products";
+
 
 
 
@@ -17,6 +17,7 @@ class GlobalVarriable{
       color: color,
       fontSize: fontSize,
       fontWeight: fontWeight,
+      fontFamily: "Inter",
 
     );
   }
