@@ -34,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent &&
         state is ProductLoaded &&
         !state.hasReachedMax) {
+
+
+
       context.read<ProductBloc>().add(FetchProducts());
     }
   }
@@ -62,6 +65,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return result;
   }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      body: BlocBuilder<ProductBloc, ProductState>(
+        builder: (context, state) {
+          if (state is ProductLoading && _allProducts.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ProductLoaded) {
+            _allProducts = state.products;
+            final filteredProducts = _applySearchAndSort(
+              products: _allProducts,
+              query: searchController.text,
+              sortType: _selectedSort,
+            );
+
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+
+                  children: [
+                    SizedBox(height: 10),
+                    _buildSearchBar(),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: GridView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: filteredProducts.length + (state.hasReachedMax ? 0 : 1),
+                        itemBuilder: (context, index) {
+                          if (index >= filteredProducts.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(left:100),
+                              child: Center(
+                                child: Text("Loading..."),
+                              ),
+                            );
+                          }
+
+                          return _buildProductCard(filteredProducts[index]);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else if (state is ProductError) {
+            return Center(child: Text(state.message));
+          } else {
+            return const SizedBox();
+          }
+        },
+      ),
+    );
+  }
+
 
   Widget _buildSearchBar() {
     return Row(
@@ -201,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
         // color: Colors.red
-          
+
       ),
       child: Stack(
         children: [
@@ -240,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               SizedBox(height: 8.sp,),
-              
+
               Row(
                 children: [
                   SvgPicture.asset("assets/svg/Rating Icon.svg"),
@@ -250,14 +320,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontSize: 12, fontWeight: FontWeight.w500),),
                   SizedBox(width: 4.sp,),
                   Text("(${product.count})",
-                  style: GlobalVarriable.customTextStyle(
-                      color: Color(0xff6B7280),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400),),
+                    style: GlobalVarriable.customTextStyle(
+                        color: Color(0xff6B7280),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400),),
 
                 ],
               )
-              
+
             ],
           ),
           Positioned(
@@ -275,64 +345,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-
-      body: BlocBuilder<ProductBloc, ProductState>(
-        builder: (context, state) {
-          if (state is ProductLoading && _allProducts.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ProductLoaded) {
-            _allProducts = state.products;
-            final filteredProducts = _applySearchAndSort(
-              products: _allProducts,
-              query: searchController.text,
-              sortType: _selectedSort,
-            );
-
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-
-                  children: [
-                    SizedBox(height: 10),
-                    _buildSearchBar(),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: GridView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(8),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 0.7,
-                        ),
-                        itemCount: filteredProducts.length + (state.hasReachedMax ? 0 : 1),
-                        itemBuilder: (context, index) {
-                          if (index >= filteredProducts.length) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          return _buildProductCard(filteredProducts[index]);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else if (state is ProductError) {
-            return Center(child: Text(state.message));
-          } else {
-            return const SizedBox();
-          }
-        },
       ),
     );
   }
