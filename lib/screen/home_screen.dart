@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
 
                   children: [
@@ -107,9 +107,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, index) {
                           if (index >= filteredProducts.length) {
                             return Padding(
-                              padding: const EdgeInsets.only(left:100),
+                              padding: const EdgeInsets.only(left:120),
                               child: Center(
-                                child: Text("Loading..."),
+                                child: CircularProgressIndicator(),
                               ),
                             );
                           }
@@ -135,41 +135,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSearchBar() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          height: 48,
-          width: 275.w,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: const Color(0xffD1D5DB)),
-          ),
-          child: TextField(
-            controller: searchController,
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              hintText: "Search Anything...",
-              hintStyle: TextStyle(
-                color: const Color(0xff9CA3AF),
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w400,
-              ),
-              border: InputBorder.none,
-              prefixIcon: Padding(
-                padding: EdgeInsets.all(12.sp),
-                child: SvgPicture.asset(
-                  "assets/svg/search-normal.svg",
-                  height: 24.sp,
-                  width: 24.sp,
+        Expanded(
+          child: Container(
+            height: 48,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: const Color(0xffD1D5DB)),
+            ),
+            child: TextField(
+              controller: searchController,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: "Search Anything...",
+                hintStyle: TextStyle(
+                  color: const Color(0xff9CA3AF),
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                prefixIcon: Padding(
+                  padding: EdgeInsets.all(12.sp),
+                  child: SvgPicture.asset(
+                    "assets/svg/search-normal.svg",
+                    height: 24.sp,
+                    width: 24.sp,
+                  ),
                 ),
               ),
             ),
           ),
         ),
+
+
+        if(searchController.text.isNotEmpty)
         const SizedBox(width: 8),
-        IconButton(
-          icon: SvgPicture.asset("assets/svg/sort.svg"),
-          onPressed: () {
+        if(searchController.text.isNotEmpty)
+        GestureDetector(
+          child: SvgPicture.asset("assets/svg/sort.svg"),
+          onTap: () {
 
 
             showModalBottomSheet(

@@ -11,11 +11,8 @@ import 'bloc/product/product_bloc.dart';
 import 'bloc/product/product_event.dart';
 
 void main() {
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.white,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  ));
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   final productRepository = ProductRepository();
   runApp(MyApp(productRepository: productRepository));
 }
